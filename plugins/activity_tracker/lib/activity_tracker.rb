@@ -34,18 +34,14 @@ module ActivityTracker # :nodoc:
     end
     
     # This adds a helper method to the model which makes it easy to track actions that can't be associated with an object in the database.
-    # Options:
-    #   <tt>:actions</tt> - An array of actions that are accepted to be tracked.
     #
     # Examples: 
-    #   tracks_unlinked_activities [:logged_in, :invited_friends] - class.track_activity(:logged_in)
+    #   tracks_unlinked_activities - user.track_activity(:logged_in)
     #
-    def tracks_unlinked_activities(actions = [])
+    def tracks_unlinked_activities
       unless included_modules.include? InstanceMethods
-        class_inheritable_accessor :activity_options
         include InstanceMethods
       end
-      self.activity_options = {:actions => actions}    
       after_destroy { |record| Activity.destroy_all(:user_id => record.id) }
     end
         
@@ -54,22 +50,26 @@ module ActivityTracker # :nodoc:
   module InstanceMethods
 
     def create_activity_from_self
-      activity = Activity.new
-      activity.item = self
-      activity.action = self.class.to_s.underscore
-      actor_id = self.send( activity_options[:actor].to_s + "_id" )
-      activity.user_id = actor_id
-      activity.save
+      begin
+        activity = Activity.new
+        activity.item = self
+        activity.action = self.class.to_s.underscore
+        actor_id = self.send( activity_options[:actor].to_s + "_id" )
+        activity.user_id = actor_id
+        activity.save!
+      rescue Exception => e
+        raise "The action can't be tracked - #{e.message}"
+      end
     end
 
     def track_activity(action)
-      if activity_options[:actions].include?(action)
+      begin
         activity = Activity.new
         activity.action = action.to_s
         activity.user_id = self.id
         activity.save!
-      else
-        raise "The action #{action} can't be tracked."
+      rescue Exception => e
+        raise "The action #{action} can't be tracked - #{e.message}"
       end
     end    
 

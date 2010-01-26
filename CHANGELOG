@@ -1,4 +1,13 @@
 = TODO
+* In activity_tracker plugin, tracks_unlinked_activities method was updated.
+  i) No need to declare an array of actions for tracking, Just call user.track_activity(:logged_in)
+  ii) if you want to track the activity with object, for example in project model
+      acts_as_activity :user, :if => Proc.new{|record| record.open? } #it will create activity feed if project is published.
+      #But consider a case where you want to publish an article or a project in draft state and don't want an activity feed to be created just yet. But want it created when it gets published, then do the following
+      object.create_activity_from_self ( where object is project or article object).
+      
+
+= TODO
 * haml/sass propagation (desert)
 * upgrade documentation/rake tasks to fix old migrations
 

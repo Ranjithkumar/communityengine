@@ -27,12 +27,6 @@ class ActivityTrackerTest < ActiveSupport::TestCase
     end
   end
   
-  def test_should_not_create_unlinked_activity
-    assert_raises(RuntimeError) do
-      test_users(:bruno).track_activity(:bogus_action)
-    end
-  end
-  
   def test_should_not_track_activity_if_user_login_is_elvis
     assert_difference TestPost, :count, 1 do
       assert_no_difference Activity, :count do
